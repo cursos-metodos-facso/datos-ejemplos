@@ -70,8 +70,18 @@ elsoc <- elsoc_2019 %>% dplyr::select(
     jv_control_rec = case_when(
       jv_control %in% c(2:5) ~ 1,
       jv_control == 1 ~ 0
-    )
+    ),
+    ingreso_rec = if_else(ingreso > 800000, 1, 0), # El ingreso mediano en chile al 2019 era de 401.000
+    educ_rec = case_when(
+      educ %in% c(1:8) ~ 0,
+      educ %in% c(9:10) ~ 1,
+      )
+    
     ) %>% labelled::set_variable_labels(
+      ingreso = "Ingresos del entrevistado",
+      ingreso_rec = "Ingresos mayores a 800.000 (binario)",
+      educ = "Nivel educacional del entrevistado",
+      educ_rec = "Educación universitaria o más (binario)",
       jv_cambio = "Justificación de la violencia por el cambio social",
       jv_cambio_rec = "Justificación de la violencia por el cambio social (binario)",
       jv_control = "Justificación de la violencia por el control social",
@@ -81,11 +91,16 @@ elsoc <- elsoc_2019 %>% dplyr::select(
     )
 
 # Etiquetar valores
+elsoc$ingreso_rec <-  sjlabelled::set_labels(elsoc$ingreso_rec, labels =  c("Menor a 800k" = 0, "Mayor a 800k" = 1))
+elsoc$educ_rec <-  sjlabelled::set_labels(elsoc$educ_rec, labels =  c("No universitaria" = 0, "Universitaria o más" = 1))
 elsoc$jv_cambio_rec <-  sjlabelled::set_labels(elsoc$jv_cambio_rec, labels =  c("No justifica" = 0, "Justifica" = 1))
 elsoc$jv_control_rec <- sjlabelled::set_labels(elsoc$jv_control_rec, labels = c("No justifica" = 0, "Justifica" = 1))
 elsoc$sj_gerente_rec <- sjlabelled::set_labels(elsoc$sj_gerente_rec, labels = c("Justo" = 0, "Injusto" = 1))
 
 # Frecuencias
+sjmisc::frq(elsoc$ingreso_rec)
+sjmisc::frq(elsoc$educ_rec)
+
 sjmisc::frq(elsoc$jv_control)
 sjmisc::frq(elsoc$jv_control_rec)
 
