@@ -109,49 +109,6 @@ dataset2 <- crear_dataset(seed = 2, n = 1000, cor_sig = FALSE, chi_sig = TRUE) %
 dataset3 <- crear_dataset(seed = 3, n = 1000, cor_sig = FALSE, chi_sig = FALSE) %>% etiquetar(.)
 dataset4 <- crear_dataset(seed = 4, n = 1000, cor_sig = TRUE, chi_sig = TRUE) %>% etiquetar(.)
 
-# Revisar
-sjmisc::frq(dataset1$autoritarismo)
-sjmisc::frq(dataset2$autoritarismo)
-sjmisc::frq(dataset3$autoritarismo)
-sjmisc::frq(dataset4$autoritarismo)
-
-sjmisc::frq(dataset1$ingresos)
-sjmisc::frq(dataset2$ingresos)
-sjmisc::frq(dataset3$ingresos)
-sjmisc::frq(dataset4$ingresos)
-
-sjmisc::frq(dataset1$ingresos_rec)
-sjmisc::frq(dataset2$ingresos_rec)
-sjmisc::frq(dataset3$ingresos_rec)
-sjmisc::frq(dataset4$ingresos_rec)
-
-sjmisc::frq(dataset1$educ_rec)
-sjmisc::frq(dataset2$educ_rec)
-sjmisc::frq(dataset3$educ_rec)
-sjmisc::frq(dataset4$educ_rec)
-
-# Test estadísticos
-# dataset1
-cor.test(dataset1$ingresos, dataset1$autoritarismo, complete.obs = TRUE, method = "pearson")
-chisq.test(dataset1$educ_rec, dataset1$ingresos_rec)
-sjPlot::plot_scatter(data = dataset1, x = ingresos, y = autoritarismo)
-
-# dataset2
-cor.test(dataset2$ingresos, dataset2$autoritarismo, complete.obs = TRUE, method = "pearson")
-chisq.test(dataset2$educ_rec, dataset2$ingresos_rec)
-sjPlot::plot_scatter(data = dataset2, x = ingresos, y = autoritarismo)
-
-
-# dataset3
-cor.test(dataset3$ingresos, dataset3$autoritarismo, complete.obs = TRUE, method = "pearson")
-chisq.test(dataset3$educ_rec, dataset3$ingresos_rec)
-sjPlot::plot_scatter(data = dataset3, x = ingresos, y = autoritarismo)
-
-
-# dataset4
-cor.test(dataset4$ingresos, dataset4$autoritarismo, complete.obs = TRUE, method = "pearson")
-chisq.test(dataset4$educ_rec, dataset4$ingresos_rec)
-sjPlot::plot_scatter(data = dataset4, x = ingresos, y = autoritarismo)
 
 # Guardar
 save(dataset1, file = "dataset1.RData")

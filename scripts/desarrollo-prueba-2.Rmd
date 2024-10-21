@@ -1,0 +1,97 @@
+# Desarrollo Prueba 2
+
+```{r}
+# librerías
+pacman::p_load(dplyr, sjPlot, sjmisc)
+sessionInfo()
+```
+
+
+```{r, include=FALSE}
+load(url("https://github.com/cursos-metodos-facso/datos-ejemplos/raw/refs/heads/main/dataset1.RData"))
+load(url("https://github.com/cursos-metodos-facso/datos-ejemplos/raw/refs/heads/main/dataset2.RData"))
+load(url("https://github.com/cursos-metodos-facso/datos-ejemplos/raw/refs/heads/main/dataset3.RData"))
+load(url("https://github.com/cursos-metodos-facso/datos-ejemplos/raw/refs/heads/main/dataset4.RData"))
+```
+
+# Revisar
+
+```{r}
+# Revisar
+sjmisc::frq(dataset1$autoritarismo)
+sjmisc::frq(dataset2$autoritarismo)
+sjmisc::frq(dataset3$autoritarismo)
+sjmisc::frq(dataset4$autoritarismo)
+
+sjmisc::frq(dataset1$ingresos)
+sjmisc::frq(dataset2$ingresos)
+sjmisc::frq(dataset3$ingresos)
+sjmisc::frq(dataset4$ingresos)
+
+sjmisc::frq(dataset1$ingresos_rec)
+sjmisc::frq(dataset2$ingresos_rec)
+sjmisc::frq(dataset3$ingresos_rec)
+sjmisc::frq(dataset4$ingresos_rec)
+
+sjmisc::frq(dataset1$educ_rec)
+sjmisc::frq(dataset2$educ_rec)
+sjmisc::frq(dataset3$educ_rec)
+sjmisc::frq(dataset4$educ_rec)
+
+# Codigo de respuesta a preguntas
+# dataset1
+cor.test(dataset1$ingresos, dataset1$autoritarismo, complete.obs = TRUE, method = "pearson")
+sjPlot::plot_scatter(data = dataset1, x = ingresos, y = autoritarismo)
+
+cormat <- dataset1 %>% 
+  dplyr::select(educ_rec, autoritarismo, ingresos)
+sjPlot::tab_corr(cormat, 
+                 na.deletion = "pairwise", # espeficicamos tratamiento NA
+                 triangle = "lower")
+
+chisq.test(dataset1$educ_rec, dataset1$ingresos_rec)
+
+# dataset2
+cor.test(dataset2$ingresos, dataset2$autoritarismo, complete.obs = TRUE, method = "pearson")
+sjPlot::plot_scatter(data = dataset2, x = ingresos, y = autoritarismo)
+
+
+cormat <- dataset2 %>% 
+  dplyr::select(educ_rec, autoritarismo, ingresos)
+sjPlot::tab_corr(cormat, 
+                 na.deletion = "pairwise", # espeficicamos tratamiento NA
+                 triangle = "lower")
+
+
+chisq.test(dataset2$educ_rec, dataset2$ingresos_rec)
+
+
+# dataset3
+cor.test(dataset3$ingresos, dataset3$autoritarismo, complete.obs = TRUE, method = "pearson")
+sjPlot::plot_scatter(data = dataset3, x = ingresos, y = autoritarismo)
+
+
+cormat <- dataset3 %>% 
+  dplyr::select(educ_rec, autoritarismo, ingresos)
+sjPlot::tab_corr(cormat, 
+                 na.deletion = "pairwise", # espeficicamos tratamiento NA
+                 triangle = "lower")
+
+
+chisq.test(dataset3$educ_rec, dataset3$ingresos_rec)
+
+
+# dataset4
+cor.test(dataset4$ingresos, dataset4$autoritarismo, complete.obs = TRUE, method = "pearson")
+sjPlot::plot_scatter(data = dataset4, x = ingresos, y = autoritarismo)
+
+cormat <- dataset4 %>% 
+  dplyr::select(educ_rec, autoritarismo, ingresos)
+sjPlot::tab_corr(cormat, 
+                 na.deletion = "pairwise", # espeficicamos tratamiento NA
+                 triangle = "lower")
+
+chisq.test(dataset4$educ_rec, dataset4$ingresos_rec)
+
+
+
