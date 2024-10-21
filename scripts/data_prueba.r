@@ -1,3 +1,6 @@
+rm(list = ls())
+options(scipen = 999)
+
 # Función para crear dataset con cantidades de NSNR fijas y pasar NSNR a NA
 library(tidyverse)
 
@@ -10,34 +13,49 @@ crear_dataset <- function(seed, n, cor_sig, chi_sig) {
 
     # Crear variables
     id <- 1:n # Identificador de encuesta (correlativo)
-    autoritarismo <- sample(1:5, n, replace = TRUE) # Autoritarismo
+    autoritarismo <- sample(1:100, n, replace = TRUE) # Autoritarismo
     educ <- sample(1:11, n, replace = TRUE) # Educación (sin NSNR)
-    pos_pol <- sample(1:10, n, replace = TRUE) # Posición política
+
+    low_mid_vals <- seq(250000, 990000, by = 10000)
+    high_vals <- seq(100000, 3000000, by = 10000)
+
+    ingresos <- c(
+        sample(low_mid_vals, n - 250, replace = TRUE),
+        sample(high_vals, 250, replace = TRUE)
+    ) # Ingresos
 
     # Crear data.frame
-    data <- data.frame(id, autoritarismo, educ, pos_pol)
+    data <- data.frame(id, autoritarismo, educ, ingresos)
 
     # Recodificaciones
     data <- data %>% mutate(
         educ_rec = ifelse(educ >= 8, 1, 0), # 1 = Universitaria o más, 0 = No universitaria
-        pos_pol_rec = case_when(
-            pos_pol %in% 1:3 ~ 1, # Izquierda
-            pos_pol %in% 4:7 ~ 2, # Centro
-            pos_pol %in% 8:10 ~ 3 # Derecha
+        ingresos_rec = case_when(
+            ingresos %in% 10000:500000 ~ 1, # Bajos ingresos
+            ingresos %in% 500001:1000000 ~ 2, # Medios ingresos
+            ingresos %in% 1000001:7000000 ~ 3 # Altos ingresos
         )
     )
 
-    # Ajuste para correlaciones específicas (Spearman)
+    # Ajuste para correlaciones específicas (pearson)
     if (cor_sig) {
+        # En lugar de asignar valores completamente aleatorios, ajustamos los valores
+        # de autoritarismo para que sigan una tendencia lineal con algo de ruido
         data <- data %>% mutate(
-            autoritarismo = if_else(pos_pol %in% c(8:10), 5, autoritarismo) # Si la persona es de derecha, entonces darle puntaje mayor de autoritarismo
+            autoritarismo = case_when(
+                ingresos %in% 250000:500000 ~ 30 + (ingresos / 100000) * 2 + rnorm(n(), 0, 5), # Ruido controlado
+                ingresos %in% 500001:1000000 ~ 50 + (ingresos / 100000) * 0.5 + rnorm(n(), 0, 5), # Ruido controlado
+                ingresos %in% 1000000:3000000 ~ 70 + (ingresos / 100000) * 0.2 + rnorm(n(), 0, 5), # Ruido controlado
+                TRUE ~ autoritarismo
+            ),
+            autoritarismo = round(autoritarismo)
         )
     }
 
     # Ajuste para Chi-cuadrado
     if (chi_sig) {
         data <- data %>% mutate(
-            pos_pol_rec = if_else(educ >= 8, 3, pos_pol_rec) # Si la persona tiene educación universitaria, entonces es de derecha
+            educ_rec = if_else(ingresos > 2000000, 1, 0)
         )
     }
 
@@ -45,10 +63,11 @@ crear_dataset <- function(seed, n, cor_sig, chi_sig) {
     set.seed(seed) # Asegurar reproducibilidad para los NA
     data <- data %>%
         mutate(
-            autoritarismo = replace(autoritarismo, sample(1:n, 150), NA), # 150 casos NA en autoritarismo
-            pos_pol = replace(pos_pol, sample(1:n, 10), NA), # 10 casos NA en pos_pol
-            pos_pol_rec = if_else(is.na(pos_pol), NA, pos_pol_rec) # Emular NA en pos_pol_rec según pos_pol
-        ) %>% select(-educ)
+            autoritarismo = replace(autoritarismo, sample(1:n, 10), NA), # 10 casos NA en autoritarismo
+            ingresos = replace(ingresos, sample(1:n, 150), NA), # 150 casos NA en ingresos
+            ingresos_rec = if_else(is.na(ingresos), NA, ingresos_rec) # Emular NA en ingresos_rec según ingresos
+        ) %>%
+        select(-educ)
 
     return(data)
 }
@@ -57,30 +76,14 @@ etiquetar <- function(data) {
     # Etiquetar
     data <- data %>% labelled::set_variable_labels(
         autoritarismo = "Autoritarismo",
-        pos_pol = "Posición política",
+        ingresos = "Ingresos",
         educ_rec = "Nivel educacinal recodificado (universitario o no)",
-        pos_pol_rec = "Posición política recodificada"
+        ingresos_rec = "Ingresos recodificado"
     )
 
     # Etiquetar variables usando sjlabelled::set_labels() para mantenerlas numéricas
     data <- data %>%
         mutate(
-            # Etiquetas para autoritarismo
-            autoritarismo = sjlabelled::set_labels(autoritarismo,
-                labels = c(
-                    "Muy en desacuerdo" = 1,
-                    "En desacuerdo" = 2,
-                    "Ni en desacuerdo ni de acuerdo" = 3,
-                    "De acuerdo" = 4,
-                    "Muy de acuerdo" = 5
-                )
-            ),
-
-            # Etiquetas para pos_pol
-            pos_pol = sjlabelled::set_labels(pos_pol,
-                labels = c("Izquierda" = 1, "Derecha" = 10)
-            ),
-
             # Etiquetas para educ_rec
             educ_rec = sjlabelled::set_labels(educ_rec,
                 labels = c(
@@ -89,12 +92,12 @@ etiquetar <- function(data) {
                 )
             ),
 
-            # Etiquetas para pos_pol_rec
-            pos_pol_rec = sjlabelled::set_labels(pos_pol_rec,
+            # Etiquetas para ingresos_rec
+            ingresos_rec = sjlabelled::set_labels(ingresos_rec,
                 labels = c(
-                    "Izquierda" = 1,
-                    "Centro" = 2,
-                    "Derecha" = 3
+                    "Bajos ingresos" = 1,
+                    "Medios ingresos" = 2,
+                    "Altos ingresos" = 3
                 )
             )
         )
@@ -112,15 +115,15 @@ sjmisc::frq(dataset2$autoritarismo)
 sjmisc::frq(dataset3$autoritarismo)
 sjmisc::frq(dataset4$autoritarismo)
 
-sjmisc::frq(dataset1$pos_pol)
-sjmisc::frq(dataset2$pos_pol)
-sjmisc::frq(dataset3$pos_pol)
-sjmisc::frq(dataset4$pos_pol)
+sjmisc::frq(dataset1$ingresos)
+sjmisc::frq(dataset2$ingresos)
+sjmisc::frq(dataset3$ingresos)
+sjmisc::frq(dataset4$ingresos)
 
-sjmisc::frq(dataset1$pos_pol_rec)
-sjmisc::frq(dataset2$pos_pol_rec)
-sjmisc::frq(dataset3$pos_pol_rec)
-sjmisc::frq(dataset4$pos_pol_rec)
+sjmisc::frq(dataset1$ingresos_rec)
+sjmisc::frq(dataset2$ingresos_rec)
+sjmisc::frq(dataset3$ingresos_rec)
+sjmisc::frq(dataset4$ingresos_rec)
 
 sjmisc::frq(dataset1$educ_rec)
 sjmisc::frq(dataset2$educ_rec)
@@ -129,21 +132,26 @@ sjmisc::frq(dataset4$educ_rec)
 
 # Test estadísticos
 # dataset1
-cor.test(dataset1$pos_pol, dataset1$autoritarismo, complete.obs = TRUE, method = "spearman")
-chisq.test(dataset1$educ_rec, dataset1$pos_pol_rec)
-sjPlot::plot_scatter(data = dataset1, x = pos_pol, y = autoritarismo)
+cor.test(dataset1$ingresos, dataset1$autoritarismo, complete.obs = TRUE, method = "pearson")
+chisq.test(dataset1$educ_rec, dataset1$ingresos_rec)
+sjPlot::plot_scatter(data = dataset1, x = ingresos, y = autoritarismo)
 
 # dataset2
-cor.test(dataset2$pos_pol, dataset2$autoritarismo, complete.obs = TRUE, method = "spearman")
-chisq.test(dataset2$educ_rec, dataset2$pos_pol_rec)
+cor.test(dataset2$ingresos, dataset2$autoritarismo, complete.obs = TRUE, method = "pearson")
+chisq.test(dataset2$educ_rec, dataset2$ingresos_rec)
+sjPlot::plot_scatter(data = dataset2, x = ingresos, y = autoritarismo)
+
 
 # dataset3
-cor.test(dataset3$pos_pol, dataset3$autoritarismo, complete.obs = TRUE, method = "spearman")
-chisq.test(dataset3$educ_rec, dataset3$pos_pol_rec)
+cor.test(dataset3$ingresos, dataset3$autoritarismo, complete.obs = TRUE, method = "pearson")
+chisq.test(dataset3$educ_rec, dataset3$ingresos_rec)
+sjPlot::plot_scatter(data = dataset3, x = ingresos, y = autoritarismo)
+
 
 # dataset4
-cor.test(dataset4$pos_pol, dataset4$autoritarismo, complete.obs = TRUE, method = "spearman")
-chisq.test(dataset4$educ_rec, dataset4$pos_pol_rec)
+cor.test(dataset4$ingresos, dataset4$autoritarismo, complete.obs = TRUE, method = "pearson")
+chisq.test(dataset4$educ_rec, dataset4$ingresos_rec)
+sjPlot::plot_scatter(data = dataset4, x = ingresos, y = autoritarismo)
 
 # Guardar
 save(dataset1, file = "dataset1.RData")
