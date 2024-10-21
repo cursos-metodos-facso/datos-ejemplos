@@ -1,4 +1,6 @@
 # Función para crear dataset con cantidades de NSNR fijas y pasar NSNR a NA
+library(tidyverse)
+
 crear_dataset <- function(seed, n, cor_sig, chi_sig) {
     # Librerías
     library(dplyr)
@@ -100,9 +102,9 @@ etiquetar <- function(data) {
 
 # Crear datasets
 dataset1 <- crear_dataset(seed = 1, n = 1000, cor_sig = TRUE, chi_sig = FALSE) %>% etiquetar(.)
-dataset2 <- crear_dataset(seed = 1, n = 1000, cor_sig = FALSE, chi_sig = TRUE) %>% etiquetar(.)
-dataset3 <- crear_dataset(seed = 1, n = 1000, cor_sig = FALSE, chi_sig = FALSE) %>% etiquetar(.)
-dataset4 <- crear_dataset(seed = 1, n = 1000, cor_sig = TRUE, chi_sig = TRUE) %>% etiquetar(.)
+dataset2 <- crear_dataset(seed = 2, n = 1000, cor_sig = FALSE, chi_sig = TRUE) %>% etiquetar(.)
+dataset3 <- crear_dataset(seed = 3, n = 1000, cor_sig = FALSE, chi_sig = FALSE) %>% etiquetar(.)
+dataset4 <- crear_dataset(seed = 4, n = 1000, cor_sig = TRUE, chi_sig = TRUE) %>% etiquetar(.)
 
 # Revisar
 sjmisc::frq(dataset1$autoritarismo)
@@ -129,6 +131,7 @@ sjmisc::frq(dataset4$educ_rec)
 # dataset1
 cor.test(dataset1$pos_pol, dataset1$autoritarismo, complete.obs = TRUE, method = "spearman")
 chisq.test(dataset1$educ_rec, dataset1$pos_pol_rec)
+sjPlot::plot_scatter(data = dataset1, x = pos_pol, y = autoritarismo)
 
 # dataset2
 cor.test(dataset2$pos_pol, dataset2$autoritarismo, complete.obs = TRUE, method = "spearman")
