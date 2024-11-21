@@ -66,10 +66,10 @@ crear_dataset <- function(seed, n, cor_sig, chi_sig) {
 etiquetar <- function(data) {
   # Etiquetar
   data <- data %>% labelled::set_variable_labels(
-    desigualdad = "Preocupación por la desigualdad",
+    desigualdad = "Preocupacion por la desigualdad",
     meritocracia = "Preferencia por la meritocracia",
     meritocracia_rec = "Preferencia por la meritocracia recodificado (prefiere o no)",
-    educ_rec = "Nivel educacinal recodificado (universitario o no)",
+    educ_rec = "Nivel educacional recodificado (universitario o no)",
   )
   
   # Etiquetar variables usando sjlabelled::set_labels() para mantenerlas numéricas
