@@ -120,61 +120,64 @@ save(dataset4, file = "dataset4.RData")
 
 data_recuperativa <- crear_dataset(seed = 5, n = 1000, cor_sig = FALSE, chi_sig = FALSE)
 
-## 1) Ajustar apoyo_dem para tener correlación MODERADA POSITIVA con ingresos
-set.seed(5)
-
-# Índices donde ambas variables no son NA
-idx_use <- which(!is.na(data_recuperativa$ingresos) & !is.na(data_recuperativa$apoyo_dem))
-
-# Estandarizar ingresos en esos casos
-z_ingresos <- scale(data_recuperativa$ingresos[idx_use])
-
-# Generar nuevo apoyo_dem con relación lineal moderada + ruido
-pref_tmp <- 50 + 7 * z_ingresos + rnorm(length(idx_use), mean = 0, sd = 15)
-pref_tmp <- round(pmin(pmax(pref_tmp, 1), 100))  # limitar a 1–100
-
-# Reemplazar solo en los casos usados (respetando los NA previos)
-data_recuperativa$apoyo_dem[idx_use] <- pref_tmp
-
-## 2) Ajustar sexo (educ_rec) para tener una ASOCIACIÓN MODERADA con ingresos_rec
+## 1) Ajustar 'sexo' (luego 'universitaria') para que tenga
+##    RELACIÓN POSITIVA con ingresos_rec
 set.seed(55)
 
 idx_ir <- which(!is.na(data_recuperativa$ingresos_rec))
 
 prob_univ <- dplyr::case_when(
-  data_recuperativa$ingresos_rec[idx_ir] == 1 ~ 0.65,  # en bajos ingresos algo más de 1
-  data_recuperativa$ingresos_rec[idx_ir] == 2 ~ 0.50,  # en medios ~50/50
-  data_recuperativa$ingresos_rec[idx_ir] == 3 ~ 0.35,  # en altos ingresos algo menos de 1
-  TRUE ~ 0.5
+  data_recuperativa$ingresos_rec[idx_ir] == 1 ~ 0.45,  # bajos ingresos: menor prob. universitaria
+  data_recuperativa$ingresos_rec[idx_ir] == 2 ~ 0.50,  # medios: ~50/50
+  data_recuperativa$ingresos_rec[idx_ir] == 3 ~ 0.55,  # altos ingresos: mayor prob. universitaria
+  TRUE ~ 0.50
 )
 
 data_recuperativa$sexo[idx_ir] <- rbinom(length(idx_ir), size = 1, prob = prob_univ)
 
-# Etiquetar con la función original (usa nombres apoyo_dem y sexo)
+## 2) Ajustar 'apoyo_dem' (luego 'pref_redis') para:
+##    - relación NEGATIVA con ingresos
+##    - relación POSITIVA con universitaria (sexo)
+set.seed(5)
+
+idx_use <- which(!is.na(data_recuperativa$ingresos) & !is.na(data_recuperativa$sexo))
+
+z_ingresos <- scale(data_recuperativa$ingresos[idx_use])
+
+apoyo_tmp <- 50 -
+  6 * z_ingresos +                 # efecto NEGATIVO de ingresos
+  6 * data_recuperativa$sexo[idx_use] +  # efecto POSITIVO de universitaria (sexo == 1)
+  rnorm(length(idx_use), mean = 0, sd = 10)
+
+apoyo_tmp <- round(pmin(pmax(apoyo_tmp, 1), 100))  # limitar a 1–100
+
+data_recuperativa$apoyo_dem[idx_use] <- apoyo_tmp
+
+# Etiquetar con la función original (usa apoyo_dem y sexo)
 data_recuperativa <- etiquetar(data_recuperativa)
 
-# --------- CAMBIO DE NOMBRES SOLO EN dataset5 ----------
+# --------- CAMBIO DE NOMBRES SOLO EN data_recuperativa ----------
 # apoyo_dem -> pref_redis
 # sexo      -> universitaria
 data_recuperativa <- data_recuperativa %>%
   dplyr::rename(
-    pref_redis   = apoyo_dem,
+    pref_redis    = apoyo_dem,
     universitaria = sexo
   )
 
-# Actualizar etiquetas de variable SOLO para dataset5
+# Actualizar etiquetas de variable SOLO para data_recuperativa
 data_recuperativa <- labelled::set_variable_labels(
   data_recuperativa,
   pref_redis    = "Preferencias redistributivas",
   universitaria = "Educación universitaria (1 = universitaria o más, 0 = no universitaria)"
 )
 
-# Actualizar etiquetas de valores para universitaria SOLO en dataset5
+# Actualizar etiquetas de valores para universitaria SOLO en data_recuperativa
 data_recuperativa$universitaria <- sjlabelled::set_labels(
   data_recuperativa$universitaria,
   labels = c(
-    "No universitaria"       = 0,
-    "Universitaria o más"    = 1
+    "No universitaria"    = 0,
+    "Universitaria o más" = 1
   )
 )
 
