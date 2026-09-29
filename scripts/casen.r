@@ -11,15 +11,9 @@ load(
 set.seed(2026)
 
 sub_casen_2024 <- casen_2024 |>
-  filter(edad >= 18) |>
-  transmute(
-    escolaridad     = haven::zap_labels(esc),
-    metros_vivienda = haven::zap_labels(v12mt),
-    horas_trabajo   = na_if(haven::zap_labels(o10), -88),
-    ingreso_laboral = haven::zap_labels(yoprcor),
-    edad            = haven::zap_labels(edad)
-  ) |>
+  select(
+    esc, v12mt, o10, yoprcor, edad) |>
   na.omit() |>
   slice_sample(n = 750)
 
-save(sub_casen_2024, file = "sub_casen_2024.RData")
+save(sub_casen_2024, file = "casen_2024.RData")
