@@ -80,7 +80,36 @@ datos_cep <- cep |>
     inmig_crimen = 6 - iden_nacional_8_a             # Invertimos: 1 = muy en desacuerdo … 5 = muy de acuerdo
   )
 
-save(cep, file="cep_2026.rdata")
+datos_cep <- cep |>
+  select(edad, sexo, esc_nivel_1_c, info_enc_20_c, educacion_104_a, iden_pol_2,
+         interes_pol_1_b, confianza_6_j, confianza_6_h, confianza_6_c, confianza_6_i,
+         confianza_6_k, democracia_20, democracia_38, ciudadania_29_a, ciudadania_30_b,
+         iden_nacional_8_a) |>
+  mutate(
+    across(everything(), haven::zap_labels),         # Quitamos las etiquetas
+    across(everything(), ~ ifelse(.x < 0, NA, .x))   # -8 (No sabe) y -9 (No contesta) pasan a NA
+  ) |>
+  transmute(
+    edad,
+    mujer = ifelse(sexo == 2, 1, 0),                 # 0 = Hombre, 1 = Mujer
+    educ = esc_nivel_1_c,
+    ingreso_tramo = info_enc_20_c,
+    estatus = educacion_104_a,
+    pos_pol = iden_pol_2,
+    interes_pol = 6 - interes_pol_1_b,               # Invertimos: 1 = nada … 5 = muy interesado
+    conf_partidos = 5 - confianza_6_j,               # Invertimos: 1 = nada … 4 = mucha confianza
+    conf_carab = 5 - confianza_6_h,
+    conf_ffaa = 5 - confianza_6_c,
+    conf_gobierno = 5 - confianza_6_i,
+    conf_congreso = 5 - confianza_6_k,
+    democracia_func = democracia_20,
+    seguridad_libertad = democracia_38,
+    just_marcha = 6 - ciudadania_29_a,               # Invertimos: 1 = nunca … 5 = siempre se justifica
+    just_fuerza_carab = 6 - ciudadania_30_b,
+    inmig_crimen = 6 - iden_nacional_8_a             # Invertimos: 1 = muy en desacuerdo … 5 = muy de acuerdo
+  )
+
+save(datos_cep, file="cep_2026.rdata")
 
 
 ## LAPOP
