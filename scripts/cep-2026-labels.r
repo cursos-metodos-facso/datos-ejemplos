@@ -7,9 +7,9 @@ load("cep_2026.rdata")
 # Los valores se mantienen numéricos con sjlabelled::set_labels()
 datos_cep <- datos_cep %>%
   labelled::set_variable_labels(
-    educ        = "Nivel educacional (SD_10)",
-    mujer       = "Sexo (SD_1)",
-    interes_pol = "Interés en la política (MPPE_2)",
+    educ        = "Nivel educacional",
+    mujer       = "Sexo",
+    interes_pol = "Interés en la política",
     just_marcha = "Justificación de participar en una marcha"
   ) %>%
   mutate(
