@@ -44,11 +44,7 @@ save(datos_cep, file = "cep_proc.RData")
 load("casen_barrio2024.rdata")
 
 datos_casen <- datos_casen %>%
-  select(nivel_educ, edad, mujer, barrio_drogas, barrio_peleas, barrio_ruidos) %>%
-  mutate(barrio_peleas_dico = case_when(
-    barrio_peleas %in% 1:3 ~ 0,
-    barrio_peleas %in% 4:5 ~ 1
-  )) %>%
+  select(escolaridad, horas_trabajo, mujer, barrio_peleas, barrio_ruidos) %>%
   rename(sexo = mujer)
 
-save(datos_casen, file = "casen_2024_proc.RData")
+save(datos_casen, file = "casen_2024_prep.RData")
